@@ -1,12 +1,5 @@
-# Node.js dependencies
-node_modules/
+git rm -r --cached node_modules
+git rm --cached .env
+git commit -m "Remove node_modules and .env from Git"
+git push
 
-# Environment variables
-.env
-
-# Logs
-*.log
-
-# Operating system files
-.DS_Store
-Thumbs.db
