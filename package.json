@@ -27,6 +27,7 @@
     "mongoose": "^8.9.4",
     "fb-downloader-scrapper": "^2.0.0",
     "ytdl-core": "^4.11.5",
-    "axios": "^1.7.9"
+    "axios": "^1.7.9",
+    "vercel": "^39.3.0"
   }
 }
