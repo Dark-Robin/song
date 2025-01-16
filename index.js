@@ -2,29 +2,32 @@ const express = require('express');
 const ytdl = require('ytdl-core');
 
 const app = express();
-
-app.get('/download/ytmp3', async (req, res) => {
-    const videoUrl = req.query.url;
-
-    if (!videoUrl) {
-        return res.status(400).send({ error: 'Please provide a YouTube URL' });
-    }
-
-    try {
-        const videoInfo = await ytdl.getInfo(videoUrl);
-        const audioFormat = ytdl.chooseFormat(videoInfo.formats, { quality: 'highestaudio' });
-
-        res.json({
-            title: videoInfo.videoDetails.title,
-            downloadLink: audioFormat.url,
-        });
-    } catch (err) {
-        res.status(500).send({ error: 'Failed to process the URL', details: err.message });
-    }
-});
-
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+app.get('/', (req, res) => {
+  res.send('YouTube Downloader API is running.');
 });
+
+// API endpoint to generate MP3 download link
+app.get('/download/ytmp3', async (req, res) => {
+  try {
+    const videoUrl = req.query.url;
+    if (!videoUrl || !ytdl.validateURL(videoUrl)) {
+      return res.status(400).json({ error: 'Invalid or missing YouTube URL.' });
+    }
+
+    const info = await ytdl.getInfo(videoUrl);
+    const title = info.videoDetails.title;
+
+    // Get audio format
+    const audioFormat = ytdl.chooseFormat(info.formats, { quality: 'highestaudio' });
+    const downloadLink = audioFormat.url;
+
+    res.json({
+      title,
+      downloadLink,
+    });
+  } catch (error) {
+    console.error(error);
+   
+
