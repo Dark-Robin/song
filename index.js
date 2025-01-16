@@ -1,43 +1,30 @@
-// Import necessary libraries
-const express = require("express"); // Web server framework
-const axios = require("axios"); // HTTP request library
-const ytdl = require("ytdl-core"); // YouTube video downloader library
+const express = require('express');
+const ytdl = require('ytdl-core');
 
-// Initialize the Express app
 const app = express();
-const PORT = process.env.PORT || 3000; // Use environment variable or default port
 
-// Create an endpoint to download audio from YouTube
-app.get("/download/ytmp3", async (req, res) => {
-    const videoUrl = req.query.url; // Extract 'url' query parameter
+app.get('/download/ytmp3', async (req, res) => {
+    const videoUrl = req.query.url;
 
     if (!videoUrl) {
-        return res.status(400).json({ error: "Please provide a YouTube URL as 'url' parameter." });
+        return res.status(400).send({ error: 'Please provide a YouTube URL' });
     }
 
     try {
-        // Step 1: Extract the YouTube video ID
-        const videoId = ytdl.getVideoID(videoUrl); // This extracts 'ptibTfys2To' from the URL
+        const videoInfo = await ytdl.getInfo(videoUrl);
+        const audioFormat = ytdl.chooseFormat(videoInfo.formats, { quality: 'highestaudio' });
 
-        // Step 2: Generate the direct audio download link
-        const apiUrl = `https://cdn61.savetube.su/media/${videoId}`;
-        const response = await axios.get(`${apiUrl}/metadata.json`); // Fetch metadata from the API
-
-        const downloadLink = response.data.audio[0].url; // Adjust based on the API's response format
-
-        // Step 3: Return the direct download link
         res.json({
-            success: true,
-            videoId,
-            downloadLink,
+            title: videoInfo.videoDetails.title,
+            downloadLink: audioFormat.url,
         });
-    } catch (error) {
-        console.error("Error generating direct link:", error.message);
-        res.status(500).json({ error: "Failed to generate direct download link." });
+    } catch (err) {
+        res.status(500).send({ error: 'Failed to process the URL', details: err.message });
     }
 });
 
-// Start the server
+const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`Server running on http://localhost:${PORT}`);
 });
