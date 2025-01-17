@@ -8,7 +8,6 @@ app.get('/', (req, res) => {
   res.send('YouTube to MP3 Downloader API is running!');
 });
 
-// Endpoint to download YouTube MP3
 app.get('/download/ytmp3', async (req, res) => {
   try {
     const videoUrl = req.query.url;
@@ -21,10 +20,16 @@ app.get('/download/ytmp3', async (req, res) => {
     // Get video information
     const info = await ytdl.getInfo(videoUrl);
 
-    // Choose the best audio format
-    const audioFormat = ytdl.chooseFormat(info.formats, { quality: 'highestaudio' });
+    // Choose the best audio format or fallback
+    const audioFormat =
+      ytdl.chooseFormat(info.formats, { quality: 'highestaudio' }) ||
+      ytdl.chooseFormat(info.formats, { quality: 'lowestaudio' });
 
-    // Respond with the audio details
+    if (!audioFormat) {
+      return res.status(404).json({ error: 'No audio format available for this video.' });
+    }
+
+    // Respond with the audio download URL
     res.json({
       title: info.videoDetails.title,
       downloadLink: audioFormat.url,
@@ -35,5 +40,4 @@ app.get('/download/ytmp3', async (req, res) => {
   }
 });
 
-module.exports = app;
 
