@@ -1,5 +1,6 @@
-git rm -r --cached node_modules
-git rm --cached .env
-git commit -m "Remove node_modules and .env from Git"
-git push
-
+git init
+git add .
+git commit -m "Initial commit"
+git branch -M main
+git remote add origin https://github.com/<your-username>/<your-repo-name>.git
+git push -u origin main
