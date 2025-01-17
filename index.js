@@ -1,34 +1,37 @@
 const express = require('express');
-const axios = require('axios');
+const ytdl = require('ytdl-core');
+
 const app = express();
 
+// Base route for testing
+app.get('/', (req, res) => {
+  res.send('YouTube to MP3 Downloader API is running!');
+});
+
+// Endpoint to download YouTube MP3
 app.get('/download/ytmp3', async (req, res) => {
   try {
     const videoUrl = req.query.url;
-    if (!videoUrl) {
-      return res.status(400).json({ error: 'Missing YouTube URL.' });
+
+    // Validate the YouTube URL
+    if (!videoUrl || !ytdl.validateURL(videoUrl)) {
+      return res.status(400).json({ error: 'Invalid or missing YouTube URL.' });
     }
 
-    // Extract the YouTube video ID
-    const videoIdMatch = videoUrl.match(/(?:v=|\/)([a-zA-Z0-9_-]{11})/);
-    if (!videoIdMatch) {
-      return res.status(400).json({ error: 'Invalid YouTube URL.' });
-    }
-    const videoId = videoIdMatch[1];
+    // Get video information
+    const info = await ytdl.getInfo(videoUrl);
 
-    // Generate the download link
-    const downloadLink = `https://cdn59.savetube.su/media/${videoId}/your-desired-filename.mp3`;
+    // Choose the best audio format
+    const audioFormat = ytdl.chooseFormat(info.formats, { quality: 'highestaudio' });
 
-    // Verify if the link works
-    try {
-      await axios.head(downloadLink);
-      res.json({ downloadLink });
-    } catch (error) {
-      res.status(500).json({ error: 'Failed to fetch the download link. The service may have restrictions.' });
-    }
+    // Respond with the audio details
+    res.json({
+      title: info.videoDetails.title,
+      downloadLink: audioFormat.url,
+    });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'An unexpected error occurred.' });
+    console.error("Error processing request:", error);
+    res.status(500).json({ error: 'Failed to process the request.' });
   }
 });
 
